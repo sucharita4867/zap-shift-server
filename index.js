@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 3000;
 
 // middleware
@@ -25,6 +25,40 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+    const db = client.db("zap_shift_db");
+    const parcelCollection = db.collection("parcels");
+
+    app.get("/parcels", async (req, res) => {
+      const query = {};
+      const { email } = req.query;
+      // parcels?email=''&
+      if (email) {
+        query.senderEmail = email;
+      }
+
+      const options = { sort: { createdAt: -1 } };
+      const cursor = parcelCollection.find(query, options);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.post("/parcels", async (req, res) => {
+      const parcel = req.body;
+      // percel create time
+      parcel.createdAt = new Date();
+      // parcel.createdAt = new Data();
+      const result = await parcelCollection.insertOne(parcel);
+      res.send(result);
+    });
+
+    app.delete("/parcels/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await parcelCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
