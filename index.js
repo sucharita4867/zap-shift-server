@@ -196,7 +196,7 @@ async function run() {
       }
       res.send({ success: false });
     });
-    // payment related apis
+    // payment related apis {payment history data}
     app.get("/payments", async (req, res) => {
       const email = req.query.email;
       const query = {};
