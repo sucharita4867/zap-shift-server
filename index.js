@@ -151,8 +151,13 @@ async function run() {
       const query = { transactionId: transactionId };
 
       const paymentExist = await paymentCollection.findOne(query);
+      console.log(paymentExist);
       if (paymentExist) {
-        return res({ massage: "already exists", transactionId });
+        return res.send({
+          massage: "already exists",
+          transactionId,
+          trackingId: paymentExist.trackingId,
+        });
       }
 
       const trackingId = generateTrackingId();
@@ -176,6 +181,7 @@ async function run() {
           transactionId: session.payment_intent,
           paymentStatus: session.payment_status,
           paidAt: new Date(),
+          trackingId: trackingId,
         };
         if (session.payment_status === "paid") {
           const resultPayment = await paymentCollection.insertOne(payment);
@@ -189,6 +195,17 @@ async function run() {
         }
       }
       res.send({ success: false });
+    });
+    // payment related apis
+    app.get("/payments", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.customerEmail = email;
+      }
+      const cursor = paymentCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
