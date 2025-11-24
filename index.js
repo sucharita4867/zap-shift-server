@@ -20,7 +20,6 @@ function generateTrackingId() {
 
   return `${prefix}-${dateStr}-${random}`;
 }
-// =========================
 
 // middleware
 app.use(express.json());
